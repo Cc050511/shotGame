@@ -1,0 +1,3 @@
+Checks: '-*,bugprone-*,cppcoreguidelines-*,modernize-*,performance-*,readability-*,-modernize-use-trailing-return-type,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-readability-magic-numbers,-cppcoreguidelines-avoid-magic-numbers,-readability-uppercase-literal-suffix,-readability-identifier-length,-cppcoreguidelines-pro-type-member-init'
+HeaderFilterRegex: '^.*src/.*\.h$'
+FormatStyle: file

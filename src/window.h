@@ -30,10 +30,15 @@ class Window {
 
     ~Window() = default;
 
-    SDL_Window *getWindow() const { return window_.get(); }
-    SDL_Renderer *getRenderer() const { return renderer_.get(); }
+    Window(const Window&) = delete;
+    Window& operator=(const Window&) = delete;
+    Window(Window&&) = delete;
+    Window& operator=(Window&&) = delete;
 
-    bool isInitialized() const { return window_ && renderer_; }
+    [[nodiscard]] SDL_Window *getWindow() const { return window_.get(); }
+    [[nodiscard]] SDL_Renderer *getRenderer() const { return renderer_.get(); }
+
+    [[nodiscard]] bool isInitialized() const { return window_ && renderer_; }
 
     void renderer(SDL_FRect &rect) {
         // 渲染绘制 (使用 get() 获取原始指针传给 SDL API)

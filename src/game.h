@@ -16,6 +16,11 @@ struct SDLContext {
         }
     }
     ~SDLContext() { SDL_Quit(); }
+
+    SDLContext(const SDLContext&) = delete;
+    SDLContext& operator=(const SDLContext&) = delete;
+    SDLContext(SDLContext&&) = delete;
+    SDLContext& operator=(SDLContext&&) = delete;
 };
 
 class Game {
@@ -26,16 +31,16 @@ class Game {
         // Main game loop
         while (KeepRunning) {
             uint64_t CurrentTime = SDL_GetTicks();
-            float DeltaTime = (CurrentTime - LastTime); // 毫秒
+            auto DeltaTime = static_cast<float>(CurrentTime - LastTime); // 毫秒
             LastTime = CurrentTime;
             processInput();
             update(DeltaTime); // Pass actual DeltaTime in milliseconds
             render();
 
-            float SleepTime = (SDL_GetTicks() - CurrentTime) > 16.0f
+            float SleepTime = static_cast<float>(SDL_GetTicks() - CurrentTime) > 16.0f
                                   ? 0.0f
-                                  : (16.0f - (SDL_GetTicks() - CurrentTime));
-            SDL_Delay(SleepTime);
+                                  : (16.0f - static_cast<float>(SDL_GetTicks() - CurrentTime));
+            SDL_Delay(static_cast<Uint32>(SleepTime));
         }
     }
 
@@ -52,12 +57,12 @@ class Game {
         std::make_unique<PerformanceOverlay>();
 
     bool KeepRunning = true;
-    SDL_Event Event;
+    SDL_Event Event{};
     SDL_FRect Rect{100.0f, 100.0f, 50.0f, 50.0f};
 
     float SpeedX = 5.0f;
     float SpeedY = 5.0f;
-    uint64_t LastTime;
+    uint64_t LastTime{0};
 };
 
 #endif // GAME_H

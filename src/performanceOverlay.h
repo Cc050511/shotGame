@@ -30,28 +30,27 @@ class PerformanceOverlay {
         // 2. 绘制波形图 (Frame Time Graph)
         SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
         float max_time =
-            *std::max_element(frame_times_.begin(), frame_times_.end());
-        if (max_time < 33.3f)
-            max_time = 33.3f; // 至少显示到 30FPS 的基准线
+            *std::ranges::max_element(frame_times_);
+        max_time = std::max(max_time, 33.3f); // 至少显示到 30FPS 的基准线
 
         for (int i = 0; i < history_size_ - 1; ++i) {
             int curr = (index_ + i) % history_size_;
             int next = (index_ + i + 1) % history_size_;
 
-            float x1 = margin + (float)i * (panel_w / (float)history_size_);
+            float x1 = margin + ((float)i * (panel_w / (float)history_size_));
             float y1 =
-                margin + panel_h - (frame_times_[curr] / max_time) * panel_h;
+                margin + panel_h - ((frame_times_[curr] / max_time) * panel_h);
             float x2 =
-                margin + (float)(i + 1) * (panel_w / (float)history_size_);
+                margin + ((float)(i + 1) * (panel_w / (float)history_size_));
             float y2 =
-                margin + panel_h - (frame_times_[next] / max_time) * panel_h;
+                margin + panel_h - ((frame_times_[next] / max_time) * panel_h);
 
             SDL_RenderLine(renderer, x1, y1, x2, y2);
         }
 
         // 3. 绘制 16.6ms 基准线 (60 FPS)
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 100);
-        float target_y = margin + panel_h - (16.6f / max_time) * panel_h;
+        float target_y = margin + panel_h - ((16.6f / max_time) * panel_h);
         SDL_RenderLine(renderer, margin, target_y, margin + panel_w, target_y);
     }
 

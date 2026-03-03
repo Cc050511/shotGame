@@ -12,8 +12,8 @@ int main(int argc, char *argv[]) {
         Game.init();
 
         Game.run();
-    } catch (const std::exception& e) {
-        std::cerr << "Fatal error: " << e.what() << '\n';
+    } catch (const std::exception& E) {
+        std::cerr << "Fatal error: " << E.what() << '\n';
         return 1;
     }
 

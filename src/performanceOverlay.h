@@ -6,58 +6,58 @@
 #include <vector>
 class PerformanceOverlay {
   public:
-    PerformanceOverlay(int history_size = 100)
-        : history_size_(history_size), frame_times_(history_size, 0.0f) {}
+    PerformanceOverlay(int HistorySize = 100)
+        : HistorySize(HistorySize), FrameTimes(HistorySize, 0.0f) {}
 
     // 更新性能数据
-    void update(float delta_time_ms) {
-        frame_times_[index_] = delta_time_ms;
-        index_ = (index_ + 1) % history_size_;
+    void update(float DeltaTimeMs) {
+        FrameTimes[Index] = DeltaTimeMs;
+        Index = (Index + 1) % HistorySize;
     }
 
     // 在指定的渲染器上绘制面板
-    void draw(SDL_Renderer *renderer) {
-        const int panel_w = 200;
-        const int panel_h = 100;
-        const int margin = 10;
+    void draw(SDL_Renderer *Renderer) {
+        const int PanelW = 200;
+        const int PanelH = 100;
+        const int Margin = 10;
 
         // 1. 绘制半透明背景
-        SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 180);
-        SDL_FRect bg{margin, margin, (float)panel_w, (float)panel_h};
-        SDL_RenderFillRect(renderer, &bg);
+        SDL_SetRenderDrawBlendMode(Renderer, SDL_BLENDMODE_BLEND);
+        SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 180);
+        SDL_FRect Bg{Margin, Margin, (float)PanelW, (float)PanelH};
+        SDL_RenderFillRect(Renderer, &Bg);
 
         // 2. 绘制波形图 (Frame Time Graph)
-        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-        float max_time =
-            *std::ranges::max_element(frame_times_);
-        max_time = std::max(max_time, 33.3f); // 至少显示到 30FPS 的基准线
+        SDL_SetRenderDrawColor(Renderer, 0, 255, 0, 255);
+        float MaxTime =
+            *std::ranges::max_element(FrameTimes);
+        MaxTime = std::max(MaxTime, 33.3f); // 至少显示到 30FPS 的基准线
 
-        for (int i = 0; i < history_size_ - 1; ++i) {
-            int curr = (index_ + i) % history_size_;
-            int next = (index_ + i + 1) % history_size_;
+        for (int I = 0; I < HistorySize - 1; ++I) {
+            int Curr = (Index + I) % HistorySize;
+            int Next = (Index + I + 1) % HistorySize;
 
-            float x1 = margin + ((float)i * (panel_w / (float)history_size_));
-            float y1 =
-                margin + panel_h - ((frame_times_[curr] / max_time) * panel_h);
-            float x2 =
-                margin + ((float)(i + 1) * (panel_w / (float)history_size_));
-            float y2 =
-                margin + panel_h - ((frame_times_[next] / max_time) * panel_h);
+            float X1 = Margin + ((float)I * (PanelW / (float)HistorySize));
+            float Y1 =
+                Margin + PanelH - ((FrameTimes[Curr] / MaxTime) * PanelH);
+            float X2 =
+                Margin + ((float)(I + 1) * (PanelW / (float)HistorySize));
+            float Y2 =
+                Margin + PanelH - ((FrameTimes[Next] / MaxTime) * PanelH);
 
-            SDL_RenderLine(renderer, x1, y1, x2, y2);
+            SDL_RenderLine(Renderer, X1, Y1, X2, Y2);
         }
 
         // 3. 绘制 16.6ms 基准线 (60 FPS)
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 100);
-        float target_y = margin + panel_h - ((16.6f / max_time) * panel_h);
-        SDL_RenderLine(renderer, margin, target_y, margin + panel_w, target_y);
+        SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 100);
+        float TargetY = Margin + PanelH - ((16.6f / MaxTime) * PanelH);
+        SDL_RenderLine(Renderer, Margin, TargetY, Margin + PanelW, TargetY);
     }
 
   private:
-    int history_size_;
-    std::vector<float> frame_times_;
-    int index_ = 0;
+    int HistorySize;
+    std::vector<float> FrameTimes;
+    int Index = 0;
 };
 
 #endif // PERFORMANCE_OVERLAY_H

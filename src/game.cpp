@@ -20,22 +20,22 @@ void Game::processInput() {
     }
 
     // 手动操作检测
-    const bool *keys = SDL_GetKeyboardState(nullptr);
+    const bool *Keys = SDL_GetKeyboardState(nullptr);
     bool IsManual = false;
 
-    if (keys[SDL_SCANCODE_UP]) {
+    if (Keys[SDL_SCANCODE_UP]) {
         Rect.y -= SpeedY;
         IsManual = true;
     }
-    if (keys[SDL_SCANCODE_DOWN]) {
+    if (Keys[SDL_SCANCODE_DOWN]) {
         Rect.y += SpeedY;
         IsManual = true;
     }
-    if (keys[SDL_SCANCODE_LEFT]) {
+    if (Keys[SDL_SCANCODE_LEFT]) {
         Rect.x -= SpeedX;
         IsManual = true;
     }
-    if (keys[SDL_SCANCODE_RIGHT]) {
+    if (Keys[SDL_SCANCODE_RIGHT]) {
         Rect.x += SpeedX;
         IsManual = true;
     }

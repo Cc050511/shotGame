@@ -1,5 +1,5 @@
-#ifndef WINDOW_H
-#define WINDOW_H
+#ifndef SRC_WINDOW_H
+#define SRC_WINDOW_H
 
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_video.h>
@@ -7,53 +7,59 @@
 #include <stdexcept>
 
 // 自定义删除器，用于 std::unique_ptr 自动释放 SDL 资源
-struct SDL_Deleter {
-    void operator()(SDL_Window *w) const { SDL_DestroyWindow(w); }
-    void operator()(SDL_Renderer *r) const { SDL_DestroyRenderer(r); }
+struct SdlDeleter {
+    void operator()(SDL_Window *Window) const { SDL_DestroyWindow(Window); }
+    void operator()(SDL_Renderer *Renderer) const {
+        SDL_DestroyRenderer(Renderer);
+    }
 };
 
 class Window {
   public:
-    Window(const char *title, int width, int height) {
-        SDL_Window *raw_window = nullptr;
-        SDL_Renderer *raw_renderer = nullptr;
+    Window(const char *Title, int Width, int Height) {
+        SDL_Window *RawWindow = nullptr;
+        SDL_Renderer *RawRenderer = nullptr;
 
-        if (!SDL_CreateWindowAndRenderer(title, width, height, 0, &raw_window,
-                                         &raw_renderer)) {
+        if (!SDL_CreateWindowAndRenderer(Title, Width, Height, 0, &RawWindow,
+                                         &RawRenderer)) {
             throw std::runtime_error("Failed to create Window/Renderer: " +
                                      std::string(SDL_GetError()));
         }
 
-        window_.reset(raw_window);
-        renderer_.reset(raw_renderer);
+        WindowPtr.reset(RawWindow);
+        RendererPtr.reset(RawRenderer);
     }
 
     ~Window() = default;
 
-    Window(const Window&) = delete;
-    Window& operator=(const Window&) = delete;
-    Window(Window&&) = delete;
-    Window& operator=(Window&&) = delete;
+    Window(const Window &) = delete;
+    Window &operator=(const Window &) = delete;
+    Window(Window &&) = delete;
+    Window &operator=(Window &&) = delete;
 
-    [[nodiscard]] SDL_Window *getWindow() const { return window_.get(); }
-    [[nodiscard]] SDL_Renderer *getRenderer() const { return renderer_.get(); }
+    [[nodiscard]] SDL_Window *getWindow() const { return WindowPtr.get(); }
+    [[nodiscard]] SDL_Renderer *getRenderer() const {
+        return RendererPtr.get();
+    }
 
-    [[nodiscard]] bool isInitialized() const { return window_ && renderer_; }
+    [[nodiscard]] bool isInitialized() const {
+        return WindowPtr && RendererPtr;
+    }
 
-    void renderer(SDL_FRect &rect) {
+    void renderer(SDL_FRect &Rect) {
         // 渲染绘制 (使用 get() 获取原始指针传给 SDL API)
-        SDL_SetRenderDrawColor(renderer_.get(), 20, 20, 20,
+        SDL_SetRenderDrawColor(RendererPtr.get(), 20, 20, 20,
                                255); // 深灰色背景
-        SDL_RenderClear(renderer_.get());
+        SDL_RenderClear(RendererPtr.get());
 
-        SDL_SetRenderDrawColor(renderer_.get(), 0, 255, 127,
+        SDL_SetRenderDrawColor(RendererPtr.get(), 0, 255, 127,
                                255); // 春绿色方块
-        SDL_RenderFillRect(renderer_.get(), &rect);
+        SDL_RenderFillRect(RendererPtr.get(), &Rect);
     }
 
   private:
-    std::unique_ptr<SDL_Window, SDL_Deleter> window_;
-    std::unique_ptr<SDL_Renderer, SDL_Deleter> renderer_;
+    std::unique_ptr<SDL_Window, SdlDeleter> WindowPtr;
+    std::unique_ptr<SDL_Renderer, SdlDeleter> RendererPtr;
 };
 
-#endif // WINDOW_H
+#endif // SRC_WINDOW_H

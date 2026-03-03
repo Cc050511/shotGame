@@ -1,6 +1,5 @@
----
 Language: Cpp
 BasedOnStyle: LLVM
-
+LineEnding: LF
 IndentWidth: 4
 TabWidth: 4

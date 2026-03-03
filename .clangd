@@ -1,8 +1,0 @@
-CompileFlags:
-  Add: [-std=c++23]
-  CompilationDatabase: build/
-
-Diagnostics:
-  ClangTidy:
-    Add: [bugprone-*, cppcoreguidelines-*, modernize-*, performance-*, readability-*]
-    Remove: [modernize-use-trailing-return-type]

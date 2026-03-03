@@ -4,11 +4,18 @@
 
 #include "game.h"
 
-int main(int argc, char *argv[]) {
-    Game Game;
-    Game.init();
+#include <iostream>
 
-    Game.run();
+int main(int argc, char *argv[]) {
+    try {
+        Game Game;
+        Game.init();
+
+        Game.run();
+    } catch (const std::exception& e) {
+        std::cerr << "Fatal error: " << e.what() << '\n';
+        return 1;
+    }
 
     return 0;
 }

@@ -10,10 +10,14 @@ class Player {
 
     void update(float DeltaTimeMs, const bool *Keys) {
         float DeltaTimeS = DeltaTimeMs / 1000.0f;
-        if (Keys[SDL_SCANCODE_W]) Rect.y -= Speed * DeltaTimeS;
-        if (Keys[SDL_SCANCODE_S]) Rect.y += Speed * DeltaTimeS;
-        if (Keys[SDL_SCANCODE_A]) Rect.x -= Speed * DeltaTimeS;
-        if (Keys[SDL_SCANCODE_D]) Rect.x += Speed * DeltaTimeS;
+        if (Keys[SDL_SCANCODE_W])
+            Rect.y -= Speed * DeltaTimeS;
+        if (Keys[SDL_SCANCODE_S])
+            Rect.y += Speed * DeltaTimeS;
+        if (Keys[SDL_SCANCODE_A])
+            Rect.x -= Speed * DeltaTimeS;
+        if (Keys[SDL_SCANCODE_D])
+            Rect.x += Speed * DeltaTimeS;
 
         // 限制玩家移动范围 (假设窗口大小为 800x600)
         Rect.x = std::clamp(Rect.x, 0.0f, 800.0f - Rect.w);

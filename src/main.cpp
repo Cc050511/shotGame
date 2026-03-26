@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
         Game.init();
 
         Game.run();
-    } catch (const std::exception& E) {
+    } catch (const std::exception &E) {
         std::cerr << "Fatal error: " << E.what() << '\n';
         return 1;
     }

@@ -1,13 +1,16 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include "bullet.h"
+#include "enemy.h"
 #include "performanceOverlay.h"
-#include "player.h" // 引入Player头文件
+#include "player.h"
 #include "window.h"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_timer.h>
 #include <stdexcept>
+#include <vector>
 
 struct SDLContext {
     SDLContext() {
@@ -18,10 +21,10 @@ struct SDLContext {
     }
     ~SDLContext() { SDL_Quit(); }
 
-    SDLContext(const SDLContext&) = delete;
-    SDLContext& operator=(const SDLContext&) = delete;
-    SDLContext(SDLContext&&) = delete;
-    SDLContext& operator=(SDLContext&&) = delete;
+    SDLContext(const SDLContext &) = delete;
+    SDLContext &operator=(const SDLContext &) = delete;
+    SDLContext(SDLContext &&) = delete;
+    SDLContext &operator=(SDLContext &&) = delete;
 };
 
 class Game {
@@ -29,38 +32,52 @@ class Game {
     void init();
 
     void run() {
-        // Main game loop
         while (KeepRunning) {
             uint64_t CurrentTime = SDL_GetTicks();
-            auto DeltaTime = static_cast<float>(CurrentTime - LastTime); // 毫秒
+            auto DeltaTime = static_cast<float>(CurrentTime - LastTime);
             LastTime = CurrentTime;
             processInput();
-            update(DeltaTime); // Pass actual DeltaTime in milliseconds
+            update(DeltaTime);
             render();
 
-            float SleepTime = static_cast<float>(SDL_GetTicks() - CurrentTime) > 16.0f
-                                  ? 0.0f
-                                  : (16.0f - static_cast<float>(SDL_GetTicks() - CurrentTime));
-            SDL_Delay(static_cast<Uint32>(SleepTime));
+            float SleepTime =
+                static_cast<float>(SDL_GetTicks() - CurrentTime) > 16.0f
+                    ? 0.0f
+                    : (16.0f -
+                       static_cast<float>(SDL_GetTicks() - CurrentTime));
+            if (SleepTime > 0.0f) {
+                SDL_Delay(static_cast<Uint32>(SleepTime));
+            }
         }
     }
 
     void processInput();
-
     void update(float DeltaTimeMs);
-
     void render();
+
+    void spawnWave();
+    bool checkCollision(const SDL_FRect &RectA, const SDL_FRect &RectB);
+    void reset();
 
   private:
     SDLContext SdlContext;
-    Window AppWindow{"SDL3 C++ Case", 800, 600};
+    Window AppWindow{"SDL3 C++ Case - Complex AI Top Down", 800, 600};
     std::unique_ptr<PerformanceOverlay> Overlay =
         std::make_unique<PerformanceOverlay>();
 
     bool KeepRunning = true;
     SDL_Event Event{};
-    Player GamePlayer; // 游戏玩家对象
+    Player GamePlayer;
     uint64_t LastTime{0};
+
+    std::vector<Bullet> Bullets;
+    std::vector<EnemyBullet> EnemyBullets;
+    std::vector<Enemy> Enemies;
+
+    float EnemySpawnTimer{0.0f};
+    bool GameOver{false};
+    int Score{0};
+    float FireCooldown{0.0f};
 };
 
 #endif // GAME_H

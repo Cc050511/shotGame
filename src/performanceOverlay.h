@@ -29,8 +29,7 @@ class PerformanceOverlay {
 
         // 2. 绘制波形图 (Frame Time Graph)
         SDL_SetRenderDrawColor(Renderer, 0, 255, 0, 255);
-        float MaxTime =
-            *std::ranges::max_element(FrameTimes);
+        float MaxTime = *std::ranges::max_element(FrameTimes);
         MaxTime = std::max(MaxTime, 33.3f); // 至少显示到 30FPS 的基准线
 
         for (int I = 0; I < HistorySize - 1; ++I) {

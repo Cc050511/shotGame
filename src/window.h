@@ -46,15 +46,11 @@ class Window {
         return WindowPtr && RendererPtr;
     }
 
-    void renderer(SDL_FRect &Rect) {
+    void clearRenderer() {
         // 渲染绘制 (使用 get() 获取原始指针传给 SDL API)
         SDL_SetRenderDrawColor(RendererPtr.get(), 20, 20, 20,
                                255); // 深灰色背景
         SDL_RenderClear(RendererPtr.get());
-
-        SDL_SetRenderDrawColor(RendererPtr.get(), 0, 255, 127,
-                               255); // 春绿色方块
-        SDL_RenderFillRect(RendererPtr.get(), &Rect);
     }
 
   private:

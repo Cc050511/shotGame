@@ -2,6 +2,7 @@
 #define GAME_H
 
 #include "performanceOverlay.h"
+#include "player.h" // 引入Player头文件
 #include "window.h"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_init.h>
@@ -58,10 +59,7 @@ class Game {
 
     bool KeepRunning = true;
     SDL_Event Event{};
-    SDL_FRect Rect{100.0f, 100.0f, 50.0f, 50.0f};
-
-    float SpeedX = 5.0f;
-    float SpeedY = 5.0f;
+    Player GamePlayer; // 游戏玩家对象
     uint64_t LastTime{0};
 };
 

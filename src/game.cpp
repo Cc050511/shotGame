@@ -18,55 +18,20 @@ void Game::processInput() {
             KeepRunning = false;
         }
     }
-
-    // 手动操作检测
-    const bool *Keys = SDL_GetKeyboardState(nullptr);
-    bool IsManual = false;
-
-    if (Keys[SDL_SCANCODE_UP]) {
-        Rect.y -= SpeedY;
-        IsManual = true;
-    }
-    if (Keys[SDL_SCANCODE_DOWN]) {
-        Rect.y += SpeedY;
-        IsManual = true;
-    }
-    if (Keys[SDL_SCANCODE_LEFT]) {
-        Rect.x -= SpeedX;
-        IsManual = true;
-    }
-    if (Keys[SDL_SCANCODE_RIGHT]) {
-        Rect.x += SpeedX;
-        IsManual = true;
-    }
-
-    // 逻辑更新：仅在非手动模式下自动走
-    if (!IsManual) {
-        Rect.x += SpeedX;
-        if (Rect.x > 750.0f || Rect.x < 0.0f) {
-            SpeedX = -SpeedX;
-        }
-        Rect.y += SpeedY;
-        if (Rect.y > 550.0f || Rect.y < 0.0f) {
-            SpeedY = -SpeedY;
-        }
-    }
-    
-    // Clamp limits for movement
-    Rect.x = std::clamp(Rect.x, 0.0f, 750.0f);
-    Rect.y = std::clamp(Rect.y, 0.0f, 550.0f);
 }
 
 void Game::update(float DeltaTimeMs) {
     // Update game state based on DeltaTimeMs
+    const bool *Keys = SDL_GetKeyboardState(nullptr);
+    GamePlayer.update(DeltaTimeMs, Keys); // 更新玩家
     Overlay->update(DeltaTimeMs);
-    SDL_Delay(16); // 约 60 FPS
 }
 
 void Game::render() {
     // Render game objects
     // This function would typically use SDL_Renderer to draw the game state
-    AppWindow.renderer(Rect);
+    AppWindow.clearRenderer(); // 清理窗口
+    GamePlayer.draw(AppWindow.getRenderer()); // 绘制玩家
     Overlay->draw(AppWindow.getRenderer());
     SDL_RenderPresent(AppWindow.getRenderer());
 }

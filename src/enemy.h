@@ -160,25 +160,64 @@ class Enemy {
     }
 
     void draw(SDL_Renderer *Renderer) {
+        float CX = Rect.x + Rect.w / 2;
+        float CY = Rect.y + Rect.h / 2;
+
         switch (Type) {
-        case EnemyType::Fast:
-            SDL_SetRenderDrawColor(Renderer, 255, 255, 0, 255);
-            break;
-        case EnemyType::Tank:
-            SDL_SetRenderDrawColor(Renderer, 100, 100, 100, 255);
-            break;
-        case EnemyType::Normal:
-        default:
-            if (Hp == 1) {
-                SDL_SetRenderDrawColor(Renderer, 150, 0, 0, 255);
-            } else if (Hp == 2) {
-                SDL_SetRenderDrawColor(Renderer, 200, 50, 50, 255);
-            } else {
-                SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);
-            }
+        case EnemyType::Fast: {
+            SDL_SetRenderDrawColor(Renderer, 255, 220, 50, 255);
+            SDL_RenderLine(Renderer, Rect.x, Rect.y, CX, Rect.y + Rect.h);
+            SDL_RenderLine(Renderer, CX, Rect.y + Rect.h,
+                           Rect.x + Rect.w, Rect.y);
+            SDL_RenderLine(Renderer, Rect.x, Rect.y, Rect.x + Rect.w, Rect.y);
+
+            SDL_SetRenderDrawBlendMode(Renderer, SDL_BLENDMODE_BLEND);
+            SDL_SetRenderDrawColor(Renderer, 255, 220, 50, 100);
+            SDL_RenderFillRect(Renderer, &Rect);
             break;
         }
-        SDL_RenderFillRect(Renderer, &Rect);
+        case EnemyType::Tank: {
+            SDL_SetRenderDrawColor(Renderer, 90, 90, 95, 255);
+            SDL_RenderFillRect(Renderer, &Rect);
+
+            SDL_SetRenderDrawColor(Renderer, 130, 130, 140, 255);
+            SDL_FRect Inner = {Rect.x + 5, Rect.y + 5, Rect.w - 10,
+                               Rect.h - 10};
+            SDL_RenderFillRect(Renderer, &Inner);
+
+            SDL_SetRenderDrawColor(Renderer, 60, 60, 65, 255);
+            SDL_RenderLine(Renderer, Rect.x, Rect.y, Rect.x + Rect.w,
+                           Rect.y);
+            SDL_RenderLine(Renderer, Rect.x, Rect.y, Rect.x,
+                           Rect.y + Rect.h);
+            SDL_RenderLine(Renderer, Rect.x + Rect.w, Rect.y,
+                           Rect.x + Rect.w, Rect.y + Rect.h);
+            SDL_RenderLine(Renderer, Rect.x, Rect.y + Rect.h,
+                           Rect.x + Rect.w, Rect.y + Rect.h);
+            break;
+        }
+        case EnemyType::Normal:
+        default: {
+            SDL_Color C;
+            if (Hp == 1) {
+                C = {150, 0, 0, 255};
+            } else if (Hp == 2) {
+                C = {200, 50, 50, 255};
+            } else {
+                C = {255, 0, 0, 255};
+            }
+            SDL_SetRenderDrawColor(Renderer, C.r, C.g, C.b, C.a);
+            SDL_RenderFillRect(Renderer, &Rect);
+
+            SDL_SetRenderDrawColor(Renderer, C.r + 40, C.g, C.b, 200);
+            SDL_RenderLine(Renderer, CX, Rect.y, Rect.x + Rect.w, CY);
+            SDL_RenderLine(Renderer, Rect.x + Rect.w, CY, CX,
+                           Rect.y + Rect.h);
+            SDL_RenderLine(Renderer, CX, Rect.y + Rect.h, Rect.x, CY);
+            SDL_RenderLine(Renderer, Rect.x, CY, CX, Rect.y);
+            break;
+        }
+        }
     }
 
     void takeDamage() {

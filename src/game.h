@@ -30,6 +30,12 @@ struct SDLContext {
     SDLContext &operator=(SDLContext &&) = delete;
 };
 
+struct PowerUp {
+    SDL_FRect Rect;
+    float Speed;
+    bool Active;
+};
+
 class Game {
   public:
     void init();
@@ -57,6 +63,7 @@ class Game {
     void processInput();
     void update(float DeltaTimeMs);
     void render();
+    void drawHUD();
 
     void spawnWave();
     bool checkCollision(const SDL_FRect &RectA, const SDL_FRect &RectB);
@@ -78,11 +85,14 @@ class Game {
     std::vector<Bullet> Bullets;
     std::vector<EnemyBullet> EnemyBullets;
     std::vector<Enemy> Enemies;
+    std::vector<PowerUp> PowerUps;
 
     float EnemySpawnTimer{0.0f};
     bool GameOver{false};
     int Score{0};
+    int HighScore{0};
+    int WeaponLevel{1};
     float FireCooldown{0.0f};
 };
 
-#endif // GAME_H
+#endif // SRC_GAME_H

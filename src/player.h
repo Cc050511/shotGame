@@ -36,18 +36,38 @@ class Player {
     void draw(SDL_Renderer *Renderer) {
         if (InvulTimer > 0.0f && (static_cast<int>(InvulTimer / 100) % 2 == 0)) {
         } else {
-            SDL_SetRenderDrawColor(Renderer, 0, 255, 127, 255);
+            float CX = Rect.x + Rect.w / 2.0f;
+            float Top = Rect.y;
+            float Bottom = Rect.y + Rect.h;
+
+            SDL_SetRenderDrawColor(Renderer, 0, 200, 100, 255);
             SDL_RenderFillRect(Renderer, &Rect);
+
+            SDL_SetRenderDrawColor(Renderer, 0, 255, 127, 255);
+            SDL_RenderLine(Renderer, CX, Top, Rect.x, Bottom);
+            SDL_RenderLine(Renderer, CX, Top, Rect.x + Rect.w, Bottom);
+            SDL_RenderLine(Renderer, Rect.x, Bottom, Rect.x + Rect.w, Bottom);
+            SDL_RenderLine(Renderer, Rect.x + Rect.w, Top + Rect.h * 0.3f,
+                           Rect.x + Rect.w, Bottom);
+
+            SDL_FRect Cockpit = {CX - 3.0f, Top + 10.0f, 6.0f, 8.0f};
+            SDL_SetRenderDrawBlendMode(Renderer, SDL_BLENDMODE_BLEND);
+            SDL_SetRenderDrawColor(Renderer, 150, 255, 200, 200);
+            SDL_RenderFillRect(Renderer, &Cockpit);
+
+            SDL_FRect Engine = {CX - 5.0f, Bottom - 2.0f, 10.0f, 4.0f};
+            SDL_SetRenderDrawColor(Renderer, 0, 180, 255, 255);
+            SDL_RenderFillRect(Renderer, &Engine);
         }
 
-        SDL_FRect HealthBarBg = {Rect.x, Rect.y - 10.0f, Rect.w, 5.0f};
-        SDL_SetRenderDrawColor(Renderer, 50, 50, 50, 255);
+        SDL_FRect HealthBarBg = {Rect.x, Rect.y - 8.0f, Rect.w, 4.0f};
+        SDL_SetRenderDrawColor(Renderer, 40, 40, 40, 255);
         SDL_RenderFillRect(Renderer, &HealthBarBg);
 
-        SDL_FRect HealthBar = {
-            Rect.x, Rect.y - 10.0f,
-            Rect.w * (static_cast<float>(Hp) / MaxHp), 5.0f};
-        SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 255);
+        SDL_FRect HealthBar = {Rect.x, Rect.y - 8.0f,
+                               Rect.w * (static_cast<float>(Hp) / MaxHp),
+                               4.0f};
+        SDL_SetRenderDrawColor(Renderer, 0, 255, 80, 255);
         SDL_RenderFillRect(Renderer, &HealthBar);
     }
 

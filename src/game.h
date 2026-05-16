@@ -1,6 +1,7 @@
 #ifndef SRC_GAME_H
 #define SRC_GAME_H
 
+#include "audio.h"
 #include "background.h"
 #include "bullet.h"
 #include "constants.h"
@@ -8,6 +9,8 @@
 #include "particleSystem.h"
 #include "performanceOverlay.h"
 #include "player.h"
+#include "sprite.h"
+#include "spriteFactory.h"
 #include "window.h"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_init.h>
@@ -17,7 +20,7 @@
 
 struct SDLContext {
     SDLContext() {
-        if (!SDL_Init(SDL_INIT_VIDEO)) {
+        if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
             throw std::runtime_error("Failed to initialize SDL: " +
                                      std::string(SDL_GetError()));
         }
@@ -39,6 +42,7 @@ struct PowerUp {
 class Game {
   public:
     void init();
+    ~Game();
 
     void run() {
         while (KeepRunning) {
@@ -70,12 +74,23 @@ class Game {
     void reset();
 
   private:
+    void createSprites();
     SDLContext SdlContext;
     Window AppWindow{WINDOW_TITLE, SCREEN_WIDTH, SCREEN_HEIGHT};
     std::unique_ptr<PerformanceOverlay> Overlay =
         std::make_unique<PerformanceOverlay>();
     Background Starfield{SCREEN_WIDTH, SCREEN_HEIGHT};
     ParticleSystem Particles;
+    Audio GameAudio;
+
+    // Sprites
+    std::unique_ptr<Sprite> PlayerSprite;
+    std::unique_ptr<Sprite> EnemyNormalSprite;
+    std::unique_ptr<Sprite> EnemyFastSprite;
+    std::unique_ptr<Sprite> EnemyTankSprite;
+    std::unique_ptr<Sprite> BulletSprite;
+    std::unique_ptr<Sprite> EnemyBulletSprite;
+    std::unique_ptr<Sprite> PowerUpSprite;
 
     bool KeepRunning = true;
     SDL_Event Event{};
@@ -93,6 +108,8 @@ class Game {
     int HighScore{0};
     int WeaponLevel{1};
     float FireCooldown{0.0f};
+    int WaveNumber{0};
+    float WaveAnnounceTimer{0.0f};
 };
 
 #endif // SRC_GAME_H

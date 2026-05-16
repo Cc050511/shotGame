@@ -8,12 +8,33 @@
 
 constexpr float SpreadAngle = 0.25f;
 
+Game::~Game() = default;
+
+void Game::createSprites() {
+    auto *R = AppWindow.getRenderer();
+    PlayerSprite = createPlayerSprite(R);
+    EnemyNormalSprite = createEnemySprite(R, false);
+    EnemyFastSprite = createEnemySprite(R, true);
+    EnemyTankSprite = createTankSprite(R);
+    BulletSprite = createBulletSprite(R);
+    EnemyBulletSprite = createEnemyBulletSprite(R);
+    PowerUpSprite = createPowerUpSprite(R);
+}
+
 void Game::init() {
     std::srand(static_cast<unsigned>(std::time(nullptr)));
     if (!AppWindow.isInitialized()) {
         return;
     }
     LastTime = SDL_GetTicks();
+
+    createSprites();
+    GameAudio.load("shoot", "assets/sounds/shoot.wav");
+    GameAudio.load("explosion", "assets/sounds/explosion.wav");
+    GameAudio.load("powerup", "assets/sounds/powerup.wav");
+    GameAudio.load("hit", "assets/sounds/hit.wav");
+    GameAudio.load("gameover", "assets/sounds/gameover.wav");
+
     reset();
 }
 
@@ -60,6 +81,8 @@ void Game::spawnWave() {
 
         Enemies.emplace_back(400.0f, -50.0f, X, Y, Type);
     }
+    WaveNumber++;
+    WaveAnnounceTimer = 2000.0f;
 }
 
 void Game::update(float DeltaTimeMs) {
@@ -105,6 +128,7 @@ void Game::update(float DeltaTimeMs) {
             Bullets.emplace_back(CenterX - BW2, TopY);
         }
         FireCooldown = PLAYER_FIRE_COOLDOWN_MS;
+        GameAudio.play("shoot");
     }
 
     for (auto &B : Bullets) {
@@ -161,9 +185,26 @@ void Game::update(float DeltaTimeMs) {
                 auto ERect = E.getRect();
                 if (!E.isActive()) {
                     Score += 50;
+                    SDL_Color ExplosionColor;
+                    int ParticleCount = 20;
+                    switch (E.getType()) {
+                    case EnemyType::Fast:
+                        ExplosionColor = {255, 200, 50, 255};
+                        ParticleCount = 15;
+                        break;
+                    case EnemyType::Tank:
+                        ExplosionColor = {180, 180, 200, 255};
+                        ParticleCount = 30;
+                        break;
+                    case EnemyType::Normal:
+                    default:
+                        ExplosionColor = {255, 80, 30, 255};
+                        break;
+                    }
                     Particles.emit(ERect.x + ERect.w / 2,
                                    ERect.y + ERect.h / 2,
-                                   {255, 0, 0, 255}, 20);
+                                   ExplosionColor, ParticleCount);
+                    GameAudio.play("explosion");
                     if (WeaponLevel < 3 && rand() % 100 < 20) {
                         PowerUps.push_back(
                             {{ERect.x + ERect.w / 2 - 8.0f, ERect.y + 4.0f,
@@ -187,8 +228,10 @@ void Game::update(float DeltaTimeMs) {
                 Particles.emit(PlayerRect.x + PlayerRect.w / 2,
                                PlayerRect.y + PlayerRect.h / 2,
                                {0, 255, 127, 255}, 15);
+                GameAudio.play("hit");
                 if (GamePlayer.getHp() <= 0) {
                     GameOver = true;
+                    GameAudio.play("gameover");
                 }
             }
         }
@@ -201,8 +244,10 @@ void Game::update(float DeltaTimeMs) {
             if (GamePlayer.takeDamage(1)) {
                 Particles.emit(EB.getRect().x, EB.getRect().y,
                                {255, 0, 255, 255}, 10);
+                GameAudio.play("hit");
                 if (GamePlayer.getHp() <= 0) {
                     GameOver = true;
+                    GameAudio.play("gameover");
                 }
             }
         }
@@ -215,10 +260,14 @@ void Game::update(float DeltaTimeMs) {
             P.Active = false;
             Particles.emit(P.Rect.x + 8.0f, P.Rect.y + 8.0f,
                            {0, 200, 255, 255}, 12);
+            GameAudio.play("powerup");
         }
     }
 
     Overlay->update(DeltaTimeMs);
+    if (WaveAnnounceTimer > 0.0f) {
+        WaveAnnounceTimer -= DeltaTimeMs;
+    }
 }
 
 void Game::drawHUD() {
@@ -233,6 +282,15 @@ void Game::drawHUD() {
 
     if (WeaponLevel >= 2) {
         SDL_RenderDebugTextFormat(R, 10, 38, "WPN Lv%d", WeaponLevel);
+    }
+
+    if (WaveAnnounceTimer > 0.0f) {
+        float Alpha = std::min(WaveAnnounceTimer / 500.0f, 1.0f);
+        SDL_SetRenderDrawBlendMode(R, SDL_BLENDMODE_BLEND);
+        SDL_SetRenderScale(R, 2.0f, 2.0f);
+        SDL_SetRenderDrawColor(R, 255, 255, 100,
+                               static_cast<Uint8>(255 * Alpha));
+        SDL_RenderDebugTextFormat(R, 155, 130, "WAVE %d", WaveNumber);
     }
     SDL_SetRenderScale(R, OldSx, OldSy);
 }
@@ -270,32 +328,46 @@ void Game::render() {
         for (auto &P : PowerUps) {
             if (!P.Active)
                 continue;
-            SDL_SetRenderDrawColor(R, 0, 200, 255, 255);
-            SDL_RenderLine(R, P.Rect.x + P.Rect.w / 2, P.Rect.y,
-                           P.Rect.x + P.Rect.w, P.Rect.y + P.Rect.h / 2);
-            SDL_RenderLine(R, P.Rect.x + P.Rect.w, P.Rect.y + P.Rect.h / 2,
-                           P.Rect.x + P.Rect.w / 2, P.Rect.y + P.Rect.h);
-            SDL_RenderLine(R, P.Rect.x + P.Rect.w / 2, P.Rect.y + P.Rect.h,
-                           P.Rect.x, P.Rect.y + P.Rect.h / 2);
-            SDL_RenderLine(R, P.Rect.x, P.Rect.y + P.Rect.h / 2,
-                           P.Rect.x + P.Rect.w / 2, P.Rect.y);
-            SDL_SetRenderDrawBlendMode(R, SDL_BLENDMODE_BLEND);
-            SDL_FRect Glow = {P.Rect.x - 2.0f, P.Rect.y - 2.0f,
-                              P.Rect.w + 4.0f, P.Rect.h + 4.0f};
-            SDL_SetRenderDrawColor(R, 0, 200, 255, 50);
-            SDL_RenderFillRect(R, &Glow);
+            if (PowerUpSprite)
+                PowerUpSprite->draw(R, P.Rect.x, P.Rect.y);
         }
 
         for (auto &B : Bullets) {
-            B.draw(R);
+            if (BulletSprite)
+                BulletSprite->draw(R, B.getRect().x, B.getRect().y);
         }
         for (auto &EB : EnemyBullets) {
-            EB.draw(R);
+            if (EnemyBulletSprite)
+                EnemyBulletSprite->draw(R, EB.getRect().x, EB.getRect().y);
         }
         for (auto &E : Enemies) {
+            if (!E.isActive())
+                continue;
+            auto r = E.getRect();
+            Sprite *S = nullptr;
+            switch (E.getType()) {
+            case EnemyType::Fast:
+                S = EnemyFastSprite.get();
+                break;
+            case EnemyType::Tank:
+                S = EnemyTankSprite.get();
+                break;
+            default:
+                S = EnemyNormalSprite.get();
+                break;
+            }
+            if (S)
+                S->draw(R, r.x, r.y);
             E.draw(R);
         }
-        GamePlayer.draw(R);
+
+        auto PR = GamePlayer.getRect();
+        if (PlayerSprite &&
+            !(GamePlayer.isInvulnerable() &&
+              (static_cast<int>(GamePlayer.getInvulTimer() / 100) % 2 == 0))) {
+            PlayerSprite->draw(R, PR.x, PR.y);
+        }
+        GamePlayer.drawHealthBar(R);
     }
 
     drawHUD();

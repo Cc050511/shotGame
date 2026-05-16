@@ -3,7 +3,9 @@
 
 #include "constants.h"
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_timer.h>
 #include <algorithm>
+#include <cmath>
 
 class Player {
   public:
@@ -34,32 +36,12 @@ class Player {
     }
 
     void draw(SDL_Renderer *Renderer) {
-        if (InvulTimer > 0.0f && (static_cast<int>(InvulTimer / 100) % 2 == 0)) {
-        } else {
-            float CX = Rect.x + Rect.w / 2.0f;
-            float Top = Rect.y;
-            float Bottom = Rect.y + Rect.h;
+        // Body is drawn by sprite in Game::render()
+        // Only blink handling for invulnerability
+        (void)Renderer;
+    }
 
-            SDL_SetRenderDrawColor(Renderer, 0, 200, 100, 255);
-            SDL_RenderFillRect(Renderer, &Rect);
-
-            SDL_SetRenderDrawColor(Renderer, 0, 255, 127, 255);
-            SDL_RenderLine(Renderer, CX, Top, Rect.x, Bottom);
-            SDL_RenderLine(Renderer, CX, Top, Rect.x + Rect.w, Bottom);
-            SDL_RenderLine(Renderer, Rect.x, Bottom, Rect.x + Rect.w, Bottom);
-            SDL_RenderLine(Renderer, Rect.x + Rect.w, Top + Rect.h * 0.3f,
-                           Rect.x + Rect.w, Bottom);
-
-            SDL_FRect Cockpit = {CX - 3.0f, Top + 10.0f, 6.0f, 8.0f};
-            SDL_SetRenderDrawBlendMode(Renderer, SDL_BLENDMODE_BLEND);
-            SDL_SetRenderDrawColor(Renderer, 150, 255, 200, 200);
-            SDL_RenderFillRect(Renderer, &Cockpit);
-
-            SDL_FRect Engine = {CX - 5.0f, Bottom - 2.0f, 10.0f, 4.0f};
-            SDL_SetRenderDrawColor(Renderer, 0, 180, 255, 255);
-            SDL_RenderFillRect(Renderer, &Engine);
-        }
-
+    void drawHealthBar(SDL_Renderer *Renderer) {
         SDL_FRect HealthBarBg = {Rect.x, Rect.y - 8.0f, Rect.w, 4.0f};
         SDL_SetRenderDrawColor(Renderer, 40, 40, 40, 255);
         SDL_RenderFillRect(Renderer, &HealthBarBg);
@@ -81,6 +63,8 @@ class Player {
         return true;
     }
 
+    [[nodiscard]] bool isInvulnerable() const { return InvulTimer > 0.0f; }
+    [[nodiscard]] float getInvulTimer() const { return InvulTimer; }
     [[nodiscard]] int getHp() const { return Hp; }
     [[nodiscard]] const SDL_FRect &getRect() const { return Rect; }
 

@@ -20,9 +20,12 @@ class PerformanceOverlay {
         const int PanelH = OVERLAY_PANEL_HEIGHT;
         const int Margin = OVERLAY_MARGIN;
 
+        float BgX = static_cast<float>(SCREEN_WIDTH - PanelW - Margin);
+        float BgY = static_cast<float>(SCREEN_HEIGHT - PanelH - Margin);
+
         SDL_SetRenderDrawBlendMode(Renderer, SDL_BLENDMODE_BLEND);
         SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 180);
-        SDL_FRect Bg{Margin, Margin, (float)PanelW, (float)PanelH};
+        SDL_FRect Bg{BgX, BgY, (float)PanelW, (float)PanelH};
         SDL_RenderFillRect(Renderer, &Bg);
 
         SDL_SetRenderDrawColor(Renderer, 0, 255, 0, 255);
@@ -33,20 +36,20 @@ class PerformanceOverlay {
             int Curr = (Index + I) % HistorySize;
             int Next = (Index + I + 1) % HistorySize;
 
-            float X1 = Margin + ((float)I * (PanelW / (float)HistorySize));
+            float X1 = BgX + ((float)I * (PanelW / (float)HistorySize));
             float Y1 =
-                Margin + PanelH - ((FrameTimes[Curr] / MaxTime) * PanelH);
+                BgY + PanelH - ((FrameTimes[Curr] / MaxTime) * PanelH);
             float X2 =
-                Margin + ((float)(I + 1) * (PanelW / (float)HistorySize));
+                BgX + ((float)(I + 1) * (PanelW / (float)HistorySize));
             float Y2 =
-                Margin + PanelH - ((FrameTimes[Next] / MaxTime) * PanelH);
+                BgY + PanelH - ((FrameTimes[Next] / MaxTime) * PanelH);
 
             SDL_RenderLine(Renderer, X1, Y1, X2, Y2);
         }
 
         SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 100);
-        float TargetY = Margin + PanelH - ((FPS_TARGET_MS / MaxTime) * PanelH);
-        SDL_RenderLine(Renderer, Margin, TargetY, Margin + PanelW, TargetY);
+        float TargetY = BgY + PanelH - ((FPS_TARGET_MS / MaxTime) * PanelH);
+        SDL_RenderLine(Renderer, BgX, TargetY, BgX + PanelW, TargetY);
     }
 
   private:

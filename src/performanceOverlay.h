@@ -1,36 +1,33 @@
-#ifndef PERFORMANCE_OVERLAY_H
-#define PERFORMANCE_OVERLAY_H
+#ifndef SRC_PERFORMANCE_OVERLAY_H
+#define SRC_PERFORMANCE_OVERLAY_H
 
+#include "constants.h"
 #include <SDL3/SDL_render.h>
 #include <algorithm>
 #include <vector>
 class PerformanceOverlay {
   public:
-    PerformanceOverlay(int HistorySize = 100)
+    PerformanceOverlay(int HistorySize = PERF_HISTORY_SIZE)
         : HistorySize(HistorySize), FrameTimes(HistorySize, 0.0f) {}
 
-    // 更新性能数据
     void update(float DeltaTimeMs) {
         FrameTimes[Index] = DeltaTimeMs;
         Index = (Index + 1) % HistorySize;
     }
 
-    // 在指定的渲染器上绘制面板
     void draw(SDL_Renderer *Renderer) {
-        const int PanelW = 200;
-        const int PanelH = 100;
-        const int Margin = 10;
+        const int PanelW = OVERLAY_PANEL_WIDTH;
+        const int PanelH = OVERLAY_PANEL_HEIGHT;
+        const int Margin = OVERLAY_MARGIN;
 
-        // 1. 绘制半透明背景
         SDL_SetRenderDrawBlendMode(Renderer, SDL_BLENDMODE_BLEND);
         SDL_SetRenderDrawColor(Renderer, 0, 0, 0, 180);
         SDL_FRect Bg{Margin, Margin, (float)PanelW, (float)PanelH};
         SDL_RenderFillRect(Renderer, &Bg);
 
-        // 2. 绘制波形图 (Frame Time Graph)
         SDL_SetRenderDrawColor(Renderer, 0, 255, 0, 255);
         float MaxTime = *std::ranges::max_element(FrameTimes);
-        MaxTime = std::max(MaxTime, 33.3f); // 至少显示到 30FPS 的基准线
+        MaxTime = std::max(MaxTime, 33.3f);
 
         for (int I = 0; I < HistorySize - 1; ++I) {
             int Curr = (Index + I) % HistorySize;
@@ -47,9 +44,8 @@ class PerformanceOverlay {
             SDL_RenderLine(Renderer, X1, Y1, X2, Y2);
         }
 
-        // 3. 绘制 16.6ms 基准线 (60 FPS)
         SDL_SetRenderDrawColor(Renderer, 255, 0, 0, 100);
-        float TargetY = Margin + PanelH - ((16.6f / MaxTime) * PanelH);
+        float TargetY = Margin + PanelH - ((FPS_TARGET_MS / MaxTime) * PanelH);
         SDL_RenderLine(Renderer, Margin, TargetY, Margin + PanelW, TargetY);
     }
 

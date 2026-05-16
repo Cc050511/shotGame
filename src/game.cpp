@@ -3,8 +3,10 @@
 #include <SDL3/SDL_timer.h>
 #include <algorithm>
 #include <cstdlib>
+#include <ctime>
 
 void Game::init() {
+    std::srand(static_cast<unsigned>(std::time(nullptr)));
     if (!AppWindow.isInitialized()) {
         return;
     }
@@ -17,6 +19,7 @@ void Game::reset() {
     Bullets.clear();
     EnemyBullets.clear();
     Enemies.clear();
+    Particles.clear();
     Score = 0;
     GameOver = false;
     EnemySpawnTimer = 0.0f;
@@ -37,19 +40,28 @@ bool Game::checkCollision(const SDL_FRect &RectA, const SDL_FRect &RectB) {
 }
 
 void Game::spawnWave() {
-    int columns = 6;
-    float startX = 150.0f;
-    float spacingX = 100.0f;
-    float startY = 40.0f;
-    for (int i = 0; i < columns; i++) {
-        float x = startX + i * spacingX;
-        float y = startY + std::abs(2.5f - i) * 30.0f; // V shape formation
-        Enemies.emplace_back(400.0f, -50.0f, x, y);
+    int WaveType = rand() % 3;
+
+    for (int I = 0; I < WAVE_COLUMNS; I++) {
+        float X = WAVE_START_X + I * WAVE_SPACING_X;
+        float Y = WAVE_START_Y + std::abs(2.5f - I) * 30.0f;
+
+        EnemyType Type = EnemyType::Normal;
+        if (WaveType == 1 && (I == 0 || I == 5)) {
+            Type = EnemyType::Fast;
+        } else if (WaveType == 2 && (I == 2 || I == 3)) {
+            Type = EnemyType::Tank;
+        }
+
+        Enemies.emplace_back(400.0f, -50.0f, X, Y, Type);
     }
 }
 
 void Game::update(float DeltaTimeMs) {
     const bool *Keys = SDL_GetKeyboardState(nullptr);
+
+    Starfield.update(DeltaTimeMs);
+    Particles.update(DeltaTimeMs);
 
     if (GameOver) {
         if (Keys[SDL_SCANCODE_R]) {
@@ -67,7 +79,7 @@ void Game::update(float DeltaTimeMs) {
         auto PlayerRect = GamePlayer.getRect();
         Bullets.emplace_back(PlayerRect.x + PlayerRect.w / 2.0f - 5.0f,
                              PlayerRect.y);
-        FireCooldown = 150.0f; // 150ms between shots
+        FireCooldown = PLAYER_FIRE_COOLDOWN_MS;
     }
 
     // Update player bullets
@@ -91,7 +103,7 @@ void Game::update(float DeltaTimeMs) {
     EnemySpawnTimer -= DeltaTimeMs;
     if (EnemySpawnTimer <= 0.0f) {
         spawnWave();
-        EnemySpawnTimer = 6000.0f; // Spawn wave every 6 seconds
+        EnemySpawnTimer = WAVE_SPAWN_INTERVAL_MS;
     }
 
     // Update enemies
@@ -112,8 +124,13 @@ void Game::update(float DeltaTimeMs) {
             if (checkCollision(B.getRect(), E.getRect())) {
                 B.deactivate();
                 E.takeDamage();
-                if (!E.isActive())
+                auto ERect = E.getRect();
+                if (!E.isActive()) {
                     Score += 50;
+                    Particles.emit(ERect.x + ERect.w/2, ERect.y + ERect.h/2, {255, 0, 0, 255}, 20);
+                } else {
+                    Particles.emit(B.getRect().x, B.getRect().y, {255, 255, 0, 255}, 5);
+                }
                 break; // bullet dead
             }
         }
@@ -123,14 +140,25 @@ void Game::update(float DeltaTimeMs) {
     auto PlayerRect = GamePlayer.getRect();
     for (auto &E : Enemies) {
         if (E.isActive() && checkCollision(E.getRect(), PlayerRect)) {
-            GameOver = true;
+            if (GamePlayer.takeDamage(1)) {
+                Particles.emit(PlayerRect.x + PlayerRect.w/2, PlayerRect.y + PlayerRect.h/2, {0, 255, 127, 255}, 15);
+                if (GamePlayer.getHp() <= 0) {
+                    GameOver = true;
+                }
+            }
         }
     }
 
     // Collisions: Enemy bullets vs Player
     for (auto &EB : EnemyBullets) {
         if (EB.isActive() && checkCollision(EB.getRect(), PlayerRect)) {
-            GameOver = true;
+            EB.deactivate();
+            if (GamePlayer.takeDamage(1)) {
+                Particles.emit(EB.getRect().x, EB.getRect().y, {255, 0, 255, 255}, 10);
+                if (GamePlayer.getHp() <= 0) {
+                    GameOver = true;
+                }
+            }
         }
     }
 
@@ -139,6 +167,8 @@ void Game::update(float DeltaTimeMs) {
 
 void Game::render() {
     AppWindow.clearRenderer();
+    Starfield.draw(AppWindow.getRenderer());
+    Particles.draw(AppWindow.getRenderer());
 
     if (!GameOver) {
         for (auto &B : Bullets) {

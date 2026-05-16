@@ -1,8 +1,11 @@
-#ifndef GAME_H
-#define GAME_H
+#ifndef SRC_GAME_H
+#define SRC_GAME_H
 
+#include "background.h"
 #include "bullet.h"
+#include "constants.h"
 #include "enemy.h"
+#include "particleSystem.h"
 #include "performanceOverlay.h"
 #include "player.h"
 #include "window.h"
@@ -61,9 +64,11 @@ class Game {
 
   private:
     SDLContext SdlContext;
-    Window AppWindow{"SDL3 C++ Case - Complex AI Top Down", 800, 600};
+    Window AppWindow{WINDOW_TITLE, SCREEN_WIDTH, SCREEN_HEIGHT};
     std::unique_ptr<PerformanceOverlay> Overlay =
         std::make_unique<PerformanceOverlay>();
+    Background Starfield{SCREEN_WIDTH, SCREEN_HEIGHT};
+    ParticleSystem Particles;
 
     bool KeepRunning = true;
     SDL_Event Event{};

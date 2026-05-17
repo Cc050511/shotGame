@@ -171,6 +171,32 @@ class Enemy {
                                    static_cast<Uint8>(HitFlashTimer * 2.0f));
             SDL_RenderFillRect(Renderer, &Rect);
         }
+
+        // Health bar (only show when damaged)
+        if (Hp < MaxHp && MaxHp > 1) {
+            float BarW = Rect.w;
+            float BarH = 3.0f;
+            float BarX = Rect.x;
+            float BarY = Rect.y - 6.0f;
+
+            SDL_FRect BgRect = {BarX, BarY, BarW, BarH};
+            SDL_SetRenderDrawColor(Renderer, 40, 40, 40, 255);
+            SDL_RenderFillRect(Renderer, &BgRect);
+
+            float HpRatio = static_cast<float>(Hp) / MaxHp;
+            SDL_FRect HpRect = {BarX, BarY, BarW * HpRatio, BarH};
+
+            Uint8 HpR, HpG, HpB;
+            if (HpRatio > 0.5f) {
+                HpR = 0; HpG = 255; HpB = 80;
+            } else if (HpRatio > 0.25f) {
+                HpR = 255; HpG = 200; HpB = 0;
+            } else {
+                HpR = 255; HpG = 40; HpB = 40;
+            }
+            SDL_SetRenderDrawColor(Renderer, HpR, HpG, HpB, 255);
+            SDL_RenderFillRect(Renderer, &HpRect);
+        }
     }
 
     void takeDamage() {
